@@ -47,16 +47,13 @@ public class UIManager implements Listener
 
     public static void Open(Player player, Inventory inventory, InGameUI inGameUI)
     {
-        new BukkitRunnable()
-        {
-            @Override
-            public void run()
-            {
-                player.openInventory(inventory); // 가장 먼저 불려야함. (버킷에서 새 인벤이 열릴때 기존의 것이 닫힘처리됨)
 
-                currentUI.put(player, inGameUI);
-            }
-        }.runTask(DynamicShop.plugin);
+        player.getScheduler().run(DynamicShop.plugin,t->{
+            player.openInventory(inventory); // 가장 먼저 불려야함. (버킷에서 새 인벤이 열릴때 기존의 것이 닫힘처리됨)
+
+            currentUI.put(player, inGameUI);
+
+        },null);
     }
 
     public static boolean IsPlayerUsingPluginGUI(Player player)

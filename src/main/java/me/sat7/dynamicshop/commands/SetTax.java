@@ -1,6 +1,8 @@
 package me.sat7.dynamicshop.commands;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import me.sat7.dynamicshop.utilities.ConfigUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -13,7 +15,7 @@ import static me.sat7.dynamicshop.utilities.MathUtil.Clamp;
 
 public final class SetTax extends DSCMD
 {
-    private static BukkitRunnable resetTaxTask = null;
+    private static ScheduledTask resetTaxTask = null;
 
     public SetTax()
     {
@@ -67,22 +69,15 @@ public final class SetTax extends DSCMD
 
                 ConfigUtil.setCurrentTax(newValue);
 
-                class ResetTaxTask extends BukkitRunnable
-                {
-                    @Override
-                    public void run()
-                    {
-                        ConfigUtil.resetTax();
-                    }
-                }
+
 
                 if (resetTaxTask != null)
                 {
                     resetTaxTask.cancel();
                     resetTaxTask = null;
                 }
-                resetTaxTask = new ResetTaxTask();
-                resetTaxTask.runTaskLater(DynamicShop.plugin, 20L * 60L * tempTaxDurationMinutes);
+
+                resetTaxTask = run(DynamicShop.plugin, 20L * 60L * tempTaxDurationMinutes);
 
                 sender.sendMessage(DynamicShop.dsPrefix(sender) + t(sender, "MESSAGE.CHANGES_APPLIED") + newValue);
             } catch (Exception e)
@@ -95,4 +90,8 @@ public final class SetTax extends DSCMD
             sender.sendMessage(DynamicShop.dsPrefix(sender) + t(sender, "ERR.WRONG_USAGE"));
         }
     }
+    public ScheduledTask run(DynamicShop plugin, long i){
+        return Bukkit.getGlobalRegionScheduler().runDelayed(plugin, t-> ConfigUtil.resetTax(), i);
+    }
+
 }

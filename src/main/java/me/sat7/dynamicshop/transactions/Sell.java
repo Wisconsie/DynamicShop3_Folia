@@ -406,7 +406,8 @@ public final class Sell
                             .replace("{amount}", String.valueOf(actualAmount))
                             .replace("{priceSum}", String.valueOf(priceSum))
                             .replace("{tax}", String.valueOf(tax));
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), sellCmd);
+                    Bukkit.getGlobalRegionScheduler().execute(DynamicShop.plugin,()->
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), sellCmd));
                 }
             }
         }

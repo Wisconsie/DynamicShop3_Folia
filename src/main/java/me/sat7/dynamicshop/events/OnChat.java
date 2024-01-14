@@ -1,5 +1,6 @@
 package me.sat7.dynamicshop.events;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import me.sat7.dynamicshop.DynamicShop;
 import me.sat7.dynamicshop.DynaShopAPI;
 import me.sat7.dynamicshop.files.CustomConfig;
@@ -25,7 +26,7 @@ import static me.sat7.dynamicshop.utilities.MathUtil.Clamp;
 public class OnChat implements Listener
 {
 
-    private static final Map<UUID, Integer> runnableMap = new HashMap<>();
+    private static final Map<UUID, ScheduledTask> runnableMap = new HashMap<>();
 
     public static void WaitForInput(Player player)
     {
@@ -34,7 +35,7 @@ public class OnChat implements Listener
             cancelRunnable(player);
         }
 
-        BukkitTask taskID = Bukkit.getScheduler().runTaskLater(DynamicShop.plugin, () ->
+        ScheduledTask taskID = player.getScheduler().runDelayed(DynamicShop.plugin, (t) ->
         {
             UUID uuid = player.getUniqueId();
             String userData = UserUtil.userTempData.get(uuid);
@@ -57,15 +58,16 @@ public class OnChat implements Listener
                 player.sendMessage(DynamicShop.dsPrefix(player) + t(player, "MESSAGE.INPUT_CANCELED"));
             }
 
-        }, 600);
-        runnableMap.put(player.getUniqueId(), taskID.getTaskId());
+        }, null,600);
+        runnableMap.put(player.getUniqueId(), taskID);
     }
 
     private static void cancelRunnable(Player player)
     {
         if (runnableMap.containsKey(player.getUniqueId()))
         {
-            Bukkit.getScheduler().cancelTask(runnableMap.get(player.getUniqueId()));
+            //Bukkit.getScheduler().cancelTask(runnableMap.get(player.getUniqueId()));
+            runnableMap.get(player.getUniqueId()).cancel();
         }
     }
 

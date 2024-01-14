@@ -1,5 +1,6 @@
 package me.sat7.dynamicshop;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.pikamug.localelib.LocaleManager;
 import me.sat7.dynamicshop.commands.CMDManager;
@@ -39,6 +40,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static me.sat7.dynamicshop.utilities.LangUtil.t;
 
@@ -81,11 +83,11 @@ public final class DynamicShop extends JavaPlugin implements Listener
 
     public static CustomConfig ccSign = new CustomConfig();
 
-    private BukkitTask periodicRepetitiveTask;
-    private BukkitTask saveLogsTask;
-    private BukkitTask cullLogsTask;
-    private BukkitTask shopSaveTask;
-    private BukkitTask userDataRepetitiveTask;
+    private ScheduledTask periodicRepetitiveTask;
+    private ScheduledTask saveLogsTask;
+    private ScheduledTask cullLogsTask;
+    private ScheduledTask shopSaveTask;
+    private ScheduledTask userDataRepetitiveTask;
 
     public static boolean updateAvailable = false;
     public static String lastVersion = "";
@@ -247,7 +249,7 @@ public final class DynamicShop extends JavaPlugin implements Listener
             setupRspRetryCount++;
             //console.sendMessage(Constants.DYNAMIC_SHOP_PREFIX + " Economy provider not found. Retry... " + setupRspRetryCount + "/3");
 
-            Bukkit.getScheduler().runTaskLater(this, this::SetupRSP, 40L);
+            Bukkit.getGlobalRegionScheduler().runDelayed(this, t->SetupRSP(), 40L);
         }
     }
 
@@ -343,7 +345,10 @@ public final class DynamicShop extends JavaPlugin implements Listener
             {
                 saveLogsTask.cancel();
             }
-            saveLogsTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, LogUtil::SaveLogToCSV, 0L, (20L * 10L));
+            saveLogsTask = Bukkit.getAsyncScheduler().runAtFixedRate(this,t->{
+                    LogUtil.SaveLogToCSV();
+
+            }, 1L, (20L * 10L * 50L), TimeUnit.MILLISECONDS);
         }
     }
 
@@ -355,9 +360,10 @@ public final class DynamicShop extends JavaPlugin implements Listener
             {
                 cullLogsTask.cancel();
             }
-            cullLogsTask = Bukkit.getScheduler().runTaskTimerAsynchronously(
-                    this, LogUtil::cullLogs, 0L, (20L * 60L * (long) ConfigUtil.GetLogCullTimeMinutes())
-            );
+            cullLogsTask = Bukkit.getAsyncScheduler().runAtFixedRate(
+                    this, t->{
+                        LogUtil.cullLogs();
+                    }, 1L, (20L * 60L * 50L * (long) ConfigUtil.GetLogCullTimeMinutes()), TimeUnit.MILLISECONDS);
         }
     }
 
@@ -366,8 +372,8 @@ public final class DynamicShop extends JavaPlugin implements Listener
         if (userDataRepetitiveTask != null)
             userDataRepetitiveTask.cancel();
 
-        userDataRepetitiveTask = Bukkit.getScheduler().runTaskTimerAsynchronously(
-                this, UserUtil::RepetitiveTask, 0L, 20L * 60L * 60L
+        userDataRepetitiveTask = Bukkit.getAsyncScheduler().runAtFixedRate(
+                this, t-> UserUtil.RepetitiveTask(), 1L, 20L * 60L * 60L * 50L, TimeUnit.MILLISECONDS
         );
     }
 
@@ -380,7 +386,7 @@ public final class DynamicShop extends JavaPlugin implements Listener
 
         // 1000틱 = 50초 = 마인크래프트 1시간
         // 20틱 = 현실시간 1초
-        periodicRepetitiveTask = Bukkit.getScheduler().runTaskTimer(DynamicShop.plugin, this::RepeatAction, 20, 20); 
+        periodicRepetitiveTask = Bukkit.getGlobalRegionScheduler().runAtFixedRate(DynamicShop.plugin, t-> RepeatAction(), 20, 20);
     }
 
     private int repeatTaskCount = 0;
@@ -408,7 +414,7 @@ public final class DynamicShop extends JavaPlugin implements Listener
         }
 
         long interval = (20L * 10L);
-        shopSaveTask = Bukkit.getScheduler().runTaskTimer(DynamicShop.plugin, ShopUtil::SaveDirtyShop, interval, interval);
+        shopSaveTask = Bukkit.getGlobalRegionScheduler().runAtFixedRate(DynamicShop.plugin, t-> ShopUtil.SaveDirtyShop(), interval, interval);
     }
 
     private void hookIntoJobs()

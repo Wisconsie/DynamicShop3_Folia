@@ -1,5 +1,6 @@
 name: DynamicShop
 version: ${project.version}
+folia-supported: true
 main: me.sat7.dynamicshop.DynamicShop
 depend: [Vault]
 softdepend: [PlaceholderAPI, Jobs, LocaleLib, PlayerPoints]

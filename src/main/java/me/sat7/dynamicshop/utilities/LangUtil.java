@@ -1055,8 +1055,8 @@ public final class LangUtil
                     if(idx < splitByRegex.length - 1)
                         finalString.append(",");
                 }
-
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " [" + finalString + "]");
+                Bukkit.getGlobalRegionScheduler().execute(DynamicShop.plugin,()->
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " [" + finalString + "]"));
             }
             else
             {
@@ -1073,7 +1073,8 @@ public final class LangUtil
                 replacement = replacement + "},\"";
 
                 String msg = message.replace("<item>", replacement);
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " [\"" + msg + "\"]");
+                Bukkit.getGlobalRegionScheduler().execute(DynamicShop.plugin,()->
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " [\"" + msg + "\"]"));
             }
 
             return true;
